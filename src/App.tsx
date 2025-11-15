@@ -1,35 +1,76 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useEffect, useRef } from "react";
+import cytoscape, { type Core } from "cytoscape";
 
-function App() {
-  const [count, setCount] = useState(0)
+export default function App() {
+  // The DIV ref where Cytoscape will render the graph
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const cyRef = useRef<Core | null>(null);
 
-  return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    const cy = cytoscape({
+      container: containerRef.current,
+      elements: [
+        // list of graph elements to start with
+        {
+          // node a
+          group: "nodes",
+          data: { id: "a" },
+        },
+        {
+          // node b
+          group: "nodes",
+          data: { id: "b" },
+        },
+        {
+          // edge ab
+          group: "edges",
+          data: { id: "ab", source: "a", target: "b" },
+        },
+      ],
+      style: [
+        // the stylesheet for the graph
+        {
+          selector: "node",
+          style: {
+            "background-color": "#666",
+            label: "data(id)",
+          },
+        },
+
+        {
+          selector: "edge",
+          style: {
+            width: 3,
+            "line-color": "#ccc",
+            "target-arrow-color": "#ccc",
+            "target-arrow-shape": "triangle",
+            "curve-style": "bezier",
+          },
+        },
+      ],
+
+      layout: {
+        name: "grid",
+        rows: 1,
+      },
+    });
+
+    cy.add([
+      { group: "nodes", data: { id: "c" } },
+      { group: "edges", data: { id: "bc", source: "b", target: "c" } },
+    ]);
+
+    cyRef.current = cy;
+
+    // Cleanup to prevent memory leaks when the component unmounts
+    return () => {
+      cy.destroy();
+      cyRef.current = null;
+    };
+  }, []);
+
+  // Fixed height so the canvas is visible; no styling beyond this
+  return <div ref={containerRef} style={{ width: "100%", height: 700 }} />;
 }
-
-export default App
