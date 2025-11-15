@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import cytoscape, { type Core } from "cytoscape";
+import cognitiveArchitecture from "./graphs/cognitive-architecture";
 
 export default function App() {
   // The DIV ref where Cytoscape will render the graph
@@ -11,31 +12,14 @@ export default function App() {
 
     const cy = cytoscape({
       container: containerRef.current,
-      elements: [
-        // list of graph elements to start with
-        {
-          // node a
-          group: "nodes",
-          data: { id: "a" },
-        },
-        {
-          // node b
-          group: "nodes",
-          data: { id: "b" },
-        },
-        {
-          // edge ab
-          group: "edges",
-          data: { id: "ab", source: "a", target: "b" },
-        },
-      ],
+      elements: cognitiveArchitecture,
       style: [
         // the stylesheet for the graph
         {
           selector: "node",
           style: {
             "background-color": "#666",
-            label: "data(id)",
+            label: "data(label)",
           },
         },
 
@@ -52,15 +36,14 @@ export default function App() {
       ],
 
       layout: {
-        name: "grid",
-        rows: 1,
+        name: "preset",
       },
     });
 
-    cy.add([
-      { group: "nodes", data: { id: "c" } },
-      { group: "edges", data: { id: "bc", source: "b", target: "c" } },
-    ]);
+    cy.on("tap", "node", function (evt) {
+      const node = evt.target;
+      console.log("tapped " + node.id());
+    });
 
     cyRef.current = cy;
 
